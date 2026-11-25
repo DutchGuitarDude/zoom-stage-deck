@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Zoom Stage Deck — Visual Pedalboard</title>
+  <link rel="stylesheet" href="styles.css?v=20261121_mobilefit1" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Unified Top Header & Bank/Preset Bar -->
+    <header class="stage-header">
+      <div class="patch-identity">
+        <div class="patch-number-badge" id="activePatchNum">01</div>
+        <div class="patch-title-group">
+          <div class="patch-meta-row">
+            <span class="model-pill" id="modelBadge">MS-50G</span>
+            <span class="status-pill mock" id="connectionBadge">
+              <span class="status-dot"></span>
+              <span id="connectionText">Mock Pedal</span>
+            </span>
+            <span class="midi-rx-pill" id="midiRxPill" title="Live MIDI input activity from Chocolate Plus or external controller">
+              <span class="midi-rx-dot"></span>
+              <span id="midiRxText">MIDI In</span>
+            </span>
+          </div>
+          <h1 class="patch-title" id="activePatchName">Warm Clean</h1>
+        </div>
+      </div>
+
+      <!-- Inline Bank & Preset Strip inside Top Nav -->
+      <section class="bank-bar" aria-label="Bank and Presets">
+        <div class="bank-stepper">
+          <button class="btn-step" id="btnBankPrev" aria-label="Previous bank" title="Previous Bank ([)">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <div class="bank-readout">
+            <span class="bank-label" id="bankTitle">BANK 1</span>
+            <span class="bank-range" id="bankRange">01 – 04</span>
+          </div>
+          <button class="btn-step" id="btnBankNext" aria-label="Next bank" title="Next Bank (])">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+
+        <div class="preset-strip" id="presetStrip">
+          <!-- Populated by JS: 4 preset pads A-D -->
+        </div>
+      </section>
+
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-sm" id="btnToggleMock" title="Switch between Mock Pedal and Live Web MIDI">
+          <span id="mockBtnLabel">Connect USB MIDI</span>
+        </button>
+        <button class="btn btn-outline btn-sm" id="btnEditMode" aria-pressed="false" title="Toggle Parameter Editor (P)">
+          Edit
+        </button>
+        <button class="btn btn-icon" id="btnFullscreen" aria-label="Toggle Full Screen (F)" title="Toggle Full Screen (F)">
+          <svg id="iconFullscreenEnter" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+        </button>
+        <button class="btn btn-icon" id="btnSettings" aria-label="Settings and MIDI Mapping" title="Settings &amp; MIDI Mapping">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mode Switcher + Live DSP Meter -->
+    <nav class="mode-bar" aria-label="Performance Mode and DSP Usage">
+      <div class="mode-tabs" role="tablist">
+        <button class="mode-tab active" data-mode="preset" role="tab" aria-selected="true">PRESET</button>
+        <button class="mode-tab" data-mode="stomp" role="tab" aria-selected="false">STOMP</button>
+        <button class="mode-tab" data-mode="scenes" role="tab" aria-selected="false">SCENES</button>
+      </div>
+
+      <div class="dsp-meter" id="dspMeter" title="Estimated MS-50G DSP load across all loaded slots">
+        <div class="dsp-meter-head">
+          <span class="dsp-label">DSP LOAD</span>
+          <span class="dsp-percent" id="dspPercent">0%</span>
+        </div>
+        <div class="dsp-bar-track" role="progressbar" aria-label="DSP usage percentage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="dspProgress">
+          <div class="dsp-bar-fill" id="dspBarFill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="shortcut-hint" id="shortcutHint">
+        Keys: <code>[</code>/<code>]</code> Bank · <code>←</code>/<code>→</code> Patch · <code>1–4</code> Footswitches · <code>Q–Y</code> Stomps · <code>P</code> Edit · <code>M</code> Mode · <code>F</code> Fullscreen
+      </div>
+    </nav>
+
+    <!-- Main Stage Content -->
+    <main class="stage-main">
+      <!-- Scenes Strip (visible in Scenes mode) -->
+      <section class="scenes-panel hidden" id="scenesPanel" aria-label="Preset Scenes">
+        <div class="scenes-header">
+          <div>
+            <h2>Scenes for <span id="scenesPatchName">Warm Clean</span></h2>
+            <p class="muted">Click pedals below to toggle ON/OFF, click <strong>Edit</strong> to tweak knobs, then click <strong>Save Here</strong> on any Scene (A–D) to store bypass states &amp; parameters.</p>
+          </div>
+          <div class="scenes-header-actions">
+            <button class="btn btn-ghost btn-xs" id="btnQuickAutoChoc" title="Auto-program M-VAVE Chocolate Plus: A–D = Scenes 1–4, E (A+B) = Patch −, F (C+D) = Patch +">Auto-Setup Chocolate+</button>
+            <button class="btn btn-accent btn-sm" id="btnCaptureScene">Save to Scene 1</button>
+          </div>
+        </div>
+        <div class="scenes-grid" id="scenesGrid">
+          <!-- Populated by JS: 4 scene pads -->
+        </div>
+      </section>
+
+      <!-- 6-Slot Stompbox Chain Grid -->
+      <section class="chain-section" aria-label="Effect Chain">
+        <div class="chain-grid" id="slotGrid">
+          <!-- Populated by JS: 6 stomp cards -->
+        </div>
+      </section>
+
+      <!-- Effect Parameter Editor: Enlarged Pedal on Left, Parameters on Right -->
+      <section class="editor-panel hidden" id="editorPanel" aria-label="Effect Parameter Editor">
+        <!-- Left Column: Enlarged Pedal Showcase -->
+        <aside class="editor-pedal-stage" id="editorPedalStage">
+          <div class="editor-pedal-top-bar">
+            <div class="editor-slot-badge-group">
+              <span class="editor-slot-tag" id="editorSlotTag">SLOT 1</span>
+              <span class="editor-fs-tag hidden" id="editorFsTag">FS A</span>
+            </div>
+            <div class="editor-reorder-bar" title="Rearrange stomp position on Zoom MS-50G chain">
+              <span class="editor-sublabel">Move:</span>
+              <button class="btn btn-ghost btn-xs" id="btnMoveSlotLeft" title="Move pedal left in chain" type="button">◀</button>
+              <button class="btn btn-ghost btn-xs" id="btnMoveSlotRight" title="Move pedal right in chain" type="button">▶</button>
+            </div>
+          </div>
+
+          <!-- Enlarged Visual Pedal Box -->
+          <div class="editor-hero-pedal-box" id="editorHeroPedalBox">
+            <div class="editor-hero-art-stage" id="editorHeroArtStage">
+              <div class="hero-interactive-pedal" id="heroInteractivePedal"></div>
+              <img class="editor-hero-pedal-img hidden" id="editorPedalThumb" alt="Pedal Visual" />
+              <div class="editor-hero-empty-bay hidden" id="editorHeroEmptyBay">+ THRU</div>
+              <span class="editor-hero-led" id="editorHeroLed" aria-hidden="true"></span>
+            </div>
+            <div class="editor-hero-stomp-row">
+              <button class="btn btn-sm editor-bypass-btn" id="editorBypassBtn" type="button">Status: ON</button>
+            </div>
+          </div>
+
+          <!-- Pedal Model & Meta Info Controls -->
+          <div class="editor-pedal-controls">
+            <div class="editor-field-group">
+              <label class="editor-field-label" for="editorEffectSelect">Effect Model</label>
+              <select class="effect-select" id="editorEffectSelect" aria-label="Choose effect for this slot"></select>
+            </div>
+            <div class="editor-badge-row">
+              <span class="zdl-badge" id="editorZdlBadge">COMP.ZDL</span>
+              <span class="dsp-chip" id="editorDspBadge">DSP 8%</span>
+              <span class="source-badge" id="editorSourceBadge">Factory</span>
+            </div>
+            <div class="editor-fs-row" title="Assign Chocolate Plus footswitch in STOMP mode">
+              <span class="editor-sublabel">Footswitch:</span>
+              <select class="param-select editor-fs-select" id="editorFsAssignSelect" aria-label="Assign Chocolate footswitch">
+                <option value="-1">No Footswitch</option>
+                <option value="0">FS A (Switch A)</option>
+                <option value="1">FS B (Switch B)</option>
+                <option value="2">FS C (Switch C)</option>
+                <option value="3">FS D (Switch D)</option>
+              </select>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Column: Parameter Deck & Knobs -->
+        <div class="editor-params-stage" id="editorParamsStage">
+          <!-- Top Bar: Slot Navigation Tabs + Scene Save Action + Done Button -->
+          <div class="editor-params-topbar">
+            <div class="editor-slot-nav" id="editorSlotNav" role="tablist" aria-label="Select slot to edit">
+              <!-- Populated by JS: S1..S6 slot selector pills -->
+            </div>
+            <div class="editor-topbar-actions">
+              <button class="btn btn-accent btn-sm hidden" id="editorSceneSaveBtn" title="Save current settings to active scene" type="button">Save to Scene 1</button>
+              <button class="btn btn-ghost btn-sm" id="btnCloseEditor" title="Return to board (Esc / P)" type="button">Done ✕</button>
+            </div>
+          </div>
+
+          <!-- ZDL Category Filter Bar -->
+          <div class="zdl-filter-bar">
+            <div class="cat-pills" id="editorCatPills" role="group" aria-label="Filter effects by category"></div>
+            <input
+              type="search"
+              id="editorEffectSearch"
+              class="zdl-search-input"
+              placeholder="Search MS-50G effects or .ZDL (172 modules)…"
+              aria-label="Search effects or ZDL modules"
+            />
+          </div>
+
+          <!-- Parameter Sliders Grid -->
+          <div class="params-grid" id="paramsGrid">
+            <!-- Populated by JS: parameter sliders -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer Status Bar -->
+    <footer class="stage-footer">
+      <div class="footer-left">
+        <span class="footer-chip" id="midiDeviceChip">Zoom MIDI: Simulated</span>
+        <span class="footer-chip" id="controllerChip">Footswitch: Keyboard</span>
+      </div>
+      <div class="footer-right">
+        <span class="toast-inline" id="statusToast">Ready — Mock MS-50G loaded (50 presets)</span>
+        <button class="btn btn-ghost btn-xs" id="btnOpenFootswitches" title="Assign Chocolate Plus footswitches (A–D) to stomps">Footswitches (A–D)</button>
+        <button class="btn btn-ghost btn-xs" id="btnUnmutePatch" title="Send clean uncorrupted patch buffer to pedal to unmute audio on active patch">Unmute Patch</button>
+        <button class="btn btn-ghost btn-xs" id="btnSyncPedal" title="Request current patch from connected Zoom pedal">Sync Active</button>
+        <button class="btn btn-ghost btn-xs" id="btnSyncAllPatches" title="Scan and sync all 50 patches from connected Zoom pedal">Sync All (50)</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Settings & MIDI Modal -->
+  <div class="modal-backdrop hidden" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="settingsTitle">Settings &amp; MIDI</h2>
+        <button class="btn btn-icon" id="btnCloseSettings" aria-label="Close settings">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="settings-group">
+          <label class="field-label" for="selectModel">Target Pedal Model</label>
+          <select id="selectModel" class="input-select">
+            <option value="MS-50G">Zoom MS-50G (Guitar)</option>
+            <option value="MS-70CDR">Zoom MS-70CDR (Chorus / Delay / Reverb)</option>
+            <option value="MS-60B">Zoom MS-60B (Bass)</option>
+          </select>
+        </div>
+
+        <div class="settings-group">
+          <label class="field-label">USB MIDI Connection (Chrome / Edge)</label>
+          <div class="midi-row">
+            <select id="selectZoomPort" class="input-select">
+              <option value="">No Zoom MIDI port detected</option>
+            </select>
+            <button class="btn btn-accent btn-sm" id="btnScanMidi">Scan MIDI</button>
+            <button class="btn btn-outline btn-sm" id="btnModalSyncAll" title="Scan and pull all 50 patches from Zoom MultiStomp">Sync All 50 Presets</button>
+          </div>
+          <p class="field-help">Connect your MultiStomp via USB and click Scan MIDI. Web MIDI requires Chrome, Edge, or Opera over localhost or HTTPS.</p>
+        </div>
+
+        <div class="settings-group">
+          <div class="log-header">
+            <label class="field-label">M-VAVE Chocolate Plus &amp; Wireless MIDI</label>
+            <div class="preset-btn-row">
+              <button type="button" class="btn btn-ghost btn-xs" id="btnChocPresetCc">CC 20–23</button>
+              <button type="button" class="btn btn-ghost btn-xs" id="btnChocPresetPc">PC 0–3</button>
+            </div>
+          </div>
+          <div class="midi-row">
+            <select id="selectControllerPort" class="input-select">
+              <option value="">None (use keyboard shortcuts or M-VAVE Wireless MIDI)</option>
+            </select>
+            <button class="btn btn-accent btn-sm" id="btnScanBleFootswitch" type="button" title="Scan &amp; Connect Bluetooth / USB Footswitch">Scan Footswitch</button>
+          </div>
+          <p class="field-help">Pair Chocolate Plus in Android Settings &gt; Bluetooth. <strong>MIUI / Android 11:</strong> Turn ON <strong>Location (GPS)</strong> in Quick Settings.</p>
+
+          <div class="choc-auto-box">
+            <div class="choc-auto-top">
+              <div class="choc-auto-fields">
+                <label class="field-label" for="selectChocLayout">Chocolate Plus Control Layout</label>
+                <select id="selectChocLayout" class="input-select">
+                  <option value="scenes-ef-patch">Scenes + Patch ± (A–D = Scenes 1–4 · E [A+B] = Patch − · F [C+D] = Patch +)</option>
+                  <option value="custom">Follow Active Mode Tab (PRESET / STOMP / SCENES)</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-accent btn-sm" id="btnAutoConfigChocolate" title="Send SysEx configuration to M-VAVE Chocolate Plus (tries Wireless MIDI &amp; USB)">
+                Auto-Configure Chocolate Plus
+              </button>
+            </div>
+            <label class="choc-auto-check">
+              <input type="checkbox" id="chkAutoConfigChocolate" checked />
+              <span>Automatically detect &amp; program Chocolate Plus whenever connected</span>
+            </label>
+            <div class="choc-auto-status" id="chocolateAutoStatus">
+              Ready — tries Wireless MIDI first; if your wireless dongle filters SysEx, connect Chocolate Plus via USB once and click Auto-Configure.
+            </div>
+          </div>
+
+          <p class="field-help">
+            In <strong>Scenes + Patch ±</strong> layout, A–D recall Scenes 1–4 (with saved knobs) and E (A+B) / F (C+D) step MS-50G Patches Down/Up. In <strong>STOMP</strong> mode, each switch toggles your chosen slot below:
+          </p>
+          <div class="choc-map-list" id="chocMapList">
+            <!-- Populated by JS: A, B, C, D rows with MIDI Type, Number, Learn, Stomp Slot target -->
+          </div>
+          <div class="cc-map-grid cc-map-3">
+            <label>Mode Cycle CC <input type="number" id="ccModeCycle" min="0" max="127" /></label>
+            <label>E / Patch − CC <input type="number" id="ccBankPrev" min="0" max="127" /></label>
+            <label>F / Patch + CC <input type="number" id="ccBankNext" min="0" max="127" /></label>
+          </div>
+          <div class="choc-test-row">
+            <span class="field-help">Test Chocolate Plus switches:</span>
+            <div class="preset-btn-row">
+              <button type="button" class="btn btn-ghost btn-xs" data-sim-switch="0">A</button>
+              <button type="button" class="btn btn-ghost btn-xs" data-sim-switch="1">B</button>
+              <button type="button" class="btn btn-ghost btn-xs" data-sim-switch="2">C</button>
+              <button type="button" class="btn btn-ghost btn-xs" data-sim-switch="3">D</button>
+              <button type="button" class="btn btn-ghost btn-xs" data-sim-ef="prev">E (Patch −)</button>
+              <button type="button" class="btn btn-ghost btn-xs" data-sim-ef="next">F (Patch +)</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="log-header">
+            <label class="field-label">MIDI / SysEx Monitor</label>
+            <button class="btn btn-ghost btn-xs" id="btnClearLog">Clear</button>
+          </div>
+          <pre class="midi-log" id="midiLog">Waiting for MIDI activity...</pre>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="btnResetScenes">Reset Saved Scenes</button>
+        <button class="btn btn-accent btn-sm" id="btnSaveSettings">Save &amp; Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footswitch Assignment Modal -->
+  <div class="modal-backdrop hidden" id="footswitchModal" role="dialog" aria-modal="true" aria-labelledby="footswitchModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="footswitchModalTitle">Chocolate Plus Footswitches (A–D)</h2>
+        <button class="btn btn-icon" id="btnCloseFootswitches" aria-label="Close footswitches dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="field-help">
+          Assign which stomp slot (1–6) on your MS-50G is toggled by each of the 4 Chocolate Plus footswitches (A, B, C, D) in <strong>STOMP</strong> mode:
+        </p>
+
+        <div class="fs-modal-presets">
+          <span class="field-help">Quick Presets:</span>
+          <div class="preset-btn-row">
+            <button type="button" class="btn btn-ghost btn-xs" id="btnFsPreset1to4">Slots 1 – 4</button>
+            <button type="button" class="btn btn-ghost btn-xs" id="btnFsPreset2to5">Slots 2 – 5</button>
+            <button type="button" class="btn btn-ghost btn-xs" id="btnFsPreset3to6">Slots 3 – 6</button>
+            <button type="button" class="btn btn-ghost btn-xs" id="btnFsPresetCustom">Slots 1, 2, 4, 5</button>
+          </div>
+        </div>
+
+        <div class="fs-assign-matrix" id="fsAssignMatrix">
+          <!-- Populated by JS: A, B, C, D slot selectors with active effect names -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-accent btn-sm" id="btnSaveFootswitches">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/app.js?v=20261120_patchfix5"></script>
+</body>
+</html>

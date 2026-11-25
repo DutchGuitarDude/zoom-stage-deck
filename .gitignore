@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+package-lock.json.log
+
+# Build Outputs & Packaging
+dist/
+build/
+out/
+*.exe
+*.blockmap
+*.zip
+*.tar.gz
+
+# Android Build & Temporary Files
+android-app/.gradle/
+android-app/.kotlin/
+android-app/build/
+android-app/app/build/
+android-app/local.properties
+android-app/.idea/
+android-app/*.iml
+android-app/app/*.iml
+*.apk
+*.aab
+
+# IDE & Editor Files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test coverage
+coverage/
+.nyc_output/

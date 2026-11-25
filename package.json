@@ -1,0 +1,58 @@
+{
+  "name": "zoom-stage-deck",
+  "version": "1.0.0",
+  "description": "Visual Pedalboard & Scene Controller for Zoom MultiStomp & M-VAVE Chocolate Plus",
+  "main": "electron-main.cjs",
+  "type": "module",
+  "scripts": {
+    "start": "electron electron-main.cjs",
+    "test": "node --test test/*.test.js",
+    "build:win": "electron-builder --win",
+    "build:portable": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.zoomstagedeck.app",
+    "productName": "Zoom Stage Deck",
+    "copyright": "Copyright © 2026 Zoom Stage Deck",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Zoom Stage Deck",
+      "uninstallDisplayName": "Zoom Stage Deck"
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "electron-main.cjs",
+      "preload.cjs",
+      "src/**/*",
+      "assets/**/*"
+    ]
+  },
+  "keywords": [
+    "zoom",
+    "ms-50g",
+    "multistomp",
+    "pedalboard",
+    "web-midi",
+    "chocolate-plus"
+  ],
+  "author": "Zoom Stage Deck",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  }
+}
